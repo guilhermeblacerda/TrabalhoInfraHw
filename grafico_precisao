@@ -1,0 +1,26 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+labels = ['FP32', 'FP16', 'INT8']
+energia = [2.5963, 2.0510, 4.8179]  # x10^-6 kWh
+tempo   = [1.6443, 1.2279, 4.9038]  # segundos
+
+x = np.arange(len(labels))
+width = 0.35
+
+fig, ax1 = plt.subplots(figsize=(7, 4))
+
+bars1 = ax1.bar(x - width/2, energia, width, label='Energia (×10⁻⁶ kWh)', color='steelblue')
+ax1.set_ylabel('Energia (×10⁻⁶ kWh)')
+ax1.set_xticks(x)
+ax1.set_xticklabels(labels)
+
+ax2 = ax1.twinx()
+bars2 = ax2.bar(x + width/2, tempo, width, label='Tempo (s)', color='coral')
+ax2.set_ylabel('Tempo de inferência (s)')
+
+fig.legend(loc='upper left', bbox_to_anchor=(0.12, 0.95))
+plt.title('Consumo energético e tempo de inferência por precisão numérica')
+plt.tight_layout()
+plt.savefig('grafico_precisao.png', dpi=300)
+plt.show()
