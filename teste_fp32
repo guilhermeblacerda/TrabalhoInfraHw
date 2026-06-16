@@ -1,0 +1,39 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from codecarbon import EmissionsTracker
+import torch
+import time
+
+model_name = "gpt2"
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name
+).to("cuda")
+
+inputs = tokenizer(
+    "Explain artificial intelligence",
+    return_tensors="pt"
+).to("cuda")
+
+# warm-up
+_ = model.generate(**inputs, max_new_tokens=20)
+
+tracker = EmissionsTracker()
+tracker.start()
+
+start = time.time()
+
+output = model.generate(
+    **inputs,
+    max_new_tokens=100
+)
+
+end = time.time()
+
+energy = tracker.stop()
+
+print("=== FP32 ===")
+print("Tempo:", end - start)
+print("Energia (kWh):", energy)
+print("Precisão:", next(model.parameters()).dtype)
