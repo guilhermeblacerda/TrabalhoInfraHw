@@ -1,0 +1,45 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from codecarbon import EmissionsTracker
+import torch
+import time
+
+model_name = "gpt2"
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# Configuração de quantização INT8
+quant_config = BitsAndBytesConfig(
+    load_in_8bit=True
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    quantization_config=quant_config,
+    device_map="auto"
+)
+
+inputs = tokenizer(
+    "Explain artificial intelligence",
+    return_tensors="pt"
+).to("cuda")
+
+# warm-up
+_ = model.generate(**inputs, max_new_tokens=20)
+
+tracker = EmissionsTracker()
+tracker.start()
+
+start = time.time()
+
+output = model.generate(
+    **inputs,
+    max_new_tokens=100
+)
+
+end = time.time()
+
+energy = tracker.stop()
+
+print("=== INT8 ===")
+print("Tempo:", end - start)
+print("Energia (kWh):", energy)
